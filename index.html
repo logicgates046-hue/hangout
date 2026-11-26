@@ -54,13 +54,13 @@ canvas{display:block;width:100%;height:100%}
 }
 
 #gameButtons{
- position:fixed;bottom:35px;right:20px;
+ position:fixed;top:112px;right:16px;
  display:flex;flex-direction:column;gap:10px;z-index:5
 }
 .gameBtn{
  border:1px solid #ffffff35;background:#20282ddd;color:white;
- padding:13px 17px;border-radius:15px;
- font-size:12px;font-weight:bold;cursor:pointer
+ padding:11px 14px;border-radius:13px;
+ font-size:10px;font-weight:bold;cursor:pointer
 }
 .gameBtn:active{transform:scale(.96)}
 
@@ -113,49 +113,68 @@ canvas{display:block;width:100%;height:100%}
 }
 #roomCode{font-weight:bold;letter-spacing:1px}
 
-#chatPanel{
- display:none;position:fixed;z-index:8;
- right:15px;top:115px;bottom:175px;
- width:min(320px,calc(100vw - 30px));
- background:#172024ed;border:1px solid #ffffff30;
- border-radius:17px;overflow:hidden;
- flex-direction:column;backdrop-filter:blur(12px)
+/* COMPACT FLOATING CHAT */
+#chatBar{
+ display:none;
+ position:fixed;
+ z-index:8;
+ right:16px;
+ bottom:28px;
+ width:min(310px,calc(100vw - 170px));
+ min-width:165px;
+ height:48px;
+ padding:5px;
+ gap:6px;
+ align-items:center;
+ background:#172024ed;
+ border:1px solid #ffffff35;
+ border-radius:28px;
+ box-shadow:0 5px 22px #0005;
+ backdrop-filter:blur(12px);
 }
-.chatHeader{
- padding:15px;border-bottom:1px solid #ffffff20;
- display:flex;justify-content:space-between;
- align-items:center;font-weight:bold
+#chatMessage{
+ flex:1;
+ width:100%;
+ min-width:0;
+ height:36px;
+ padding:0 11px;
+ border:0;
+ outline:none;
+ border-radius:22px;
+ background:transparent;
+ color:white;
+ font-size:13px;
+ touch-action:auto;
 }
-#messages{
- flex:1;overflow-y:auto;padding:12px;
- display:flex;flex-direction:column;gap:9px;touch-action:pan-y
+#chatMessage::placeholder{color:#aab4b4}
+#sendMessage{
+ flex-shrink:0;
+ width:36px;
+ height:36px;
+ border:0;
+ border-radius:50%;
+ background:#d4e0d4;
+ color:#17211d;
+ font-size:18px;
+ font-weight:bold;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
 }
-.message{
- background:#303b40;padding:10px 12px;border-radius:12px;
- font-size:12px;max-width:90%;align-self:flex-start;overflow-wrap:anywhere
-}
-.message.mine{background:#d4e0d4;color:#17211d;align-self:flex-end}
-.message strong{display:block;font-size:10px;margin-bottom:5px;opacity:.7}
-.chatInput{
- display:flex;gap:6px;padding:10px;border-top:1px solid #ffffff20
-}
-.chatInput input{
- flex:1;min-width:0;padding:12px;border:0;border-radius:9px;
- background:#303a3e;color:white;outline:none
-}
-.chatInput button{
- padding:0 14px;border:0;border-radius:9px;
- background:#d4e0d4;font-weight:bold
-}
+#sendMessage:active{transform:scale(.92)}
+#chatForm{display:flex;align-items:center;width:100%;gap:5px}
+
 #toast{
  position:fixed;z-index:20;bottom:170px;left:50%;
  transform:translateX(-50%);background:#202a2e;
  padding:12px 18px;border-radius:12px;font-size:12px;
  display:none;max-width:90%;text-align:center
 }
+
 @media(min-width:700px){
  #joystick{width:140px;height:140px;left:40px;bottom:35px}
- #chatPanel{bottom:30px}
+ #chatBar{bottom:35px;right:35px;width:310px}
 }
 </style>
 </head>
@@ -178,19 +197,20 @@ canvas{display:block;width:100%;height:100%}
 <div id="joystick"><div id="stick"></div></div>
 
 <div id="gameButtons">
- <button class="gameBtn" id="chatToggle">CHAT</button>
  <button class="gameBtn" id="leaveRoom">LEAVE ROOM</button>
 </div>
 
-<div id="chatPanel">
- <div class="chatHeader">
-  <span>ROOM CHAT</span>
-  <button id="closeChat" style="background:none;border:0;color:white;font-size:20px">×</button>
- </div>
- <div id="messages"></div>
- <form class="chatInput" id="chatForm">
-  <input id="chatMessage" placeholder="Say something..." maxlength="500" autocomplete="off">
-  <button type="submit">SEND</button>
+<!-- Small floating chat input -->
+<div id="chatBar">
+ <form id="chatForm">
+  <input
+   id="chatMessage"
+   placeholder="Message..."
+   maxlength="500"
+   autocomplete="off"
+   enterkeyhint="send"
+  >
+  <button id="sendMessage" type="submit" aria-label="Send message">↑</button>
  </form>
 </div>
 
@@ -231,7 +251,7 @@ import * as THREE from 'three';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://grykpdbvyssmvwqyqpoi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-g5-9rjv';
+const SUPABASE_KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-5g9-9rjv';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
@@ -430,7 +450,6 @@ function createSpeechBubble(message) {
   ctx.roundRect(12,10,488,135,28);
   ctx.fill();
 
-  ctx.fillStyle = 'rgba(255,255,255,0.97)';
   ctx.beginPath();
   ctx.moveTo(220,143);
   ctx.lineTo(250,175);
@@ -580,10 +599,23 @@ function makeCharacter(name,gender='male') {
   return group;
 }
 
-const player = makeCharacter('You','male');
+let player = makeCharacter('You','male');
 scene.add(player);
 player.position.set(0,0,2);
 camera.position.set(0,4,8);
+
+function disposeCharacter(character) {
+  character.traverse(obj => {
+    if(obj.geometry) obj.geometry.dispose();
+    if(obj.material) {
+      const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+      materials.forEach(m => {
+        if(m.map) m.map.dispose();
+        m.dispose();
+      });
+    }
+  });
+}
 
 /* ROOM CREATION */
 
@@ -681,31 +713,22 @@ async function enterRoom(room) {
 
   if(avatarError) throw avatarError;
 
-  player.userData.gender = selectedAvatar;
+  const oldPosition = player.position.clone();
+  const oldRotation = player.rotation.clone();
 
-  const replacement = makeCharacter('You',selectedAvatar);
   scene.remove(player);
-  player.children.forEach(child => {
-    if(child.geometry) child.geometry.dispose();
-  });
-  player.clear();
-  replacement.position.copy(player.position);
-  replacement.rotation.copy(player.rotation);
-  scene.add(replacement);
+  disposeCharacter(player);
 
-  // Keep the same player reference used by movement and synchronization.
-  player.add(...replacement.children);
-  player.userData = replacement.userData;
-  player.position.copy(replacement.position);
-  player.rotation.copy(replacement.rotation);
-  scene.remove(replacement);
+  player = makeCharacter(playerName,selectedAvatar);
+  player.position.copy(oldPosition);
+  player.rotation.copy(oldRotation);
   scene.add(player);
 
   $('roomPanel').style.display = 'none';
   $('roomInfo').style.display = 'block';
   $('roomCode').textContent = room.room_code;
   $('instructions').textContent = 'Move around and explore together';
-  $('chatPanel').style.display = 'none';
+  $('chatBar').style.display = 'flex';
 
   player.position.set(0,0,2);
   player.rotation.y = 0;
@@ -764,6 +787,7 @@ function addRemotePlayer(data) {
       replacement.rotation.copy(old.rotation);
       scene.add(replacement);
       scene.remove(old);
+      disposeCharacter(old);
       remote.group = replacement;
     }
 
@@ -783,33 +807,11 @@ function removeRemotePlayer(userId) {
 
   clearTimeout(remote.group.userData.bubbleTimer);
   scene.remove(remote.group);
-  remote.group.traverse(obj => {
-    if(obj.geometry) obj.geometry.dispose();
-    if(obj.material) {
-      if(obj.material.map) obj.material.map.dispose();
-      obj.material.dispose();
-    }
-  });
-
+  disposeCharacter(remote.group);
   remotePlayers.delete(userId);
 }
 
 /* CHAT */
-
-function addMessageElement(message) {
-  const box = document.createElement('div');
-  box.className = 'message' + (message.user_id === currentUser.id ? ' mine' : '');
-
-  const name = document.createElement('strong');
-  name.textContent = message.display_name || 'Player';
-
-  const text = document.createElement('span');
-  text.textContent = message.content;
-
-  box.append(name,text);
-  $('messages').appendChild(box);
-  $('messages').scrollTop = $('messages').scrollHeight;
-}
 
 const shownMessages = new Set();
 
@@ -817,7 +819,6 @@ function showMessage(message,live=false) {
   if(!message || shownMessages.has(message.id)) return;
 
   shownMessages.add(message.id);
-  addMessageElement(message);
 
   if(live) {
     if(message.user_id === currentUser.id) {
@@ -830,7 +831,6 @@ function showMessage(message,live=false) {
 }
 
 async function loadMessages() {
-  $('messages').innerHTML = '';
   shownMessages.clear();
 
   const {data,error} = await supabase
@@ -851,10 +851,12 @@ async function loadMessages() {
 $('chatForm').addEventListener('submit',async e => {
   e.preventDefault();
 
-  const content = $('chatMessage').value.trim();
-  if(!content || !currentRoom) return;
+  const input = $('chatMessage');
+  const content = input.value.trim();
 
-  $('chatMessage').value = '';
+  if(!content || !currentRoom || !currentUser) return;
+
+  input.value = '';
 
   const {data,error} = await supabase
     .from('messages')
@@ -872,19 +874,7 @@ $('chatForm').addEventListener('submit',async e => {
     return;
   }
 
-  // Show immediately for the sender. Realtime duplicates are ignored.
   showMessage(data,true);
-});
-
-$('chatToggle').addEventListener('click',() => {
-  if(!currentRoom) return toast('Join a room first.');
-
-  const panel = $('chatPanel');
-  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-});
-
-$('closeChat').addEventListener('click',() => {
-  $('chatPanel').style.display = 'none';
 });
 
 /* REALTIME */
@@ -969,10 +959,14 @@ $('leaveRoom').addEventListener('click',async () => {
 
   currentRoom = null;
   lastPosition = null;
+  shownMessages.clear();
+
   $('roomPanel').style.display = 'flex';
   $('roomInfo').style.display = 'none';
-  $('chatPanel').style.display = 'none';
+  $('chatBar').style.display = 'none';
+  $('chatMessage').value = '';
   $('instructions').textContent = 'Your shared virtual space';
+
   setStatus('● CONNECTED');
   toast('You left the room.');
 });
@@ -1034,6 +1028,7 @@ joystick.addEventListener('pointercancel',releaseJoystick);
 const keys={};
 
 window.addEventListener('keydown',e => {
+  if(e.target.matches('input,textarea')) return;
   keys[e.key.toLowerCase()]=true;
 });
 
