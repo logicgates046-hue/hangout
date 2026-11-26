@@ -113,57 +113,61 @@ canvas{display:block;width:100%;height:100%}
 }
 #roomCode{font-weight:bold;letter-spacing:1px}
 
-/* COMPACT FLOATING CHAT */
+/* SMALL VERTICAL CHAT WIDGET */
 #chatBar{
  display:none;
  position:fixed;
  z-index:8;
- right:16px;
- bottom:28px;
- width:min(310px,calc(100vw - 170px));
- min-width:165px;
- height:48px;
- padding:5px;
- gap:6px;
- align-items:center;
- background:#172024ed;
- border:1px solid #ffffff35;
- border-radius:28px;
- box-shadow:0 5px 22px #0005;
- backdrop-filter:blur(12px);
+ right:12px;
+ bottom:20px;
+ width:145px;
+ height:155px;
+ padding:8px;
+ background:rgba(23,32,36,.78);
+ border:1px solid #ffffff30;
+ border-radius:17px;
+ box-shadow:0 4px 15px #0004;
+ backdrop-filter:blur(7px);
 }
+
+#chatForm{
+ display:flex;
+ flex-direction:column;
+ justify-content:flex-end;
+ gap:7px;
+ width:100%;
+ height:100%;
+}
+
 #chatMessage{
- flex:1;
  width:100%;
  min-width:0;
- height:36px;
- padding:0 11px;
- border:0;
+ height:38px;
+ padding:0 9px;
+ border:1px solid #ffffff20;
  outline:none;
- border-radius:22px;
- background:transparent;
+ border-radius:10px;
+ background:#303a3e;
  color:white;
- font-size:13px;
+ font-size:12px;
  touch-action:auto;
 }
+
 #chatMessage::placeholder{color:#aab4b4}
+
 #sendMessage{
- flex-shrink:0;
- width:36px;
- height:36px;
+ width:100%;
+ height:32px;
  border:0;
- border-radius:50%;
+ border-radius:9px;
  background:#d4e0d4;
  color:#17211d;
- font-size:18px;
+ font-size:12px;
  font-weight:bold;
  cursor:pointer;
- display:flex;
- align-items:center;
- justify-content:center;
 }
-#sendMessage:active{transform:scale(.92)}
-#chatForm{display:flex;align-items:center;width:100%;gap:5px}
+
+#sendMessage:active{transform:scale(.96)}
 
 #toast{
  position:fixed;z-index:20;bottom:170px;left:50%;
@@ -174,7 +178,12 @@ canvas{display:block;width:100%;height:100%}
 
 @media(min-width:700px){
  #joystick{width:140px;height:140px;left:40px;bottom:35px}
- #chatBar{bottom:35px;right:35px;width:310px}
+ #chatBar{
+  width:165px;
+  height:165px;
+  right:25px;
+  bottom:25px;
+ }
 }
 </style>
 </head>
@@ -200,17 +209,16 @@ canvas{display:block;width:100%;height:100%}
  <button class="gameBtn" id="leaveRoom">LEAVE ROOM</button>
 </div>
 
-<!-- Small floating chat input -->
 <div id="chatBar">
  <form id="chatForm">
   <input
    id="chatMessage"
-   placeholder="Message..."
+   placeholder="Type message..."
    maxlength="500"
    autocomplete="off"
    enterkeyhint="send"
   >
-  <button id="sendMessage" type="submit" aria-label="Send message">↑</button>
+  <button id="sendMessage" type="submit">SEND MESSAGE ↑</button>
  </form>
 </div>
 
@@ -251,7 +259,7 @@ import * as THREE from 'three';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://grykpdbvyssmvwqyqpoi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-5g9-9rjv';
+const SUPABASE_KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-5g-9rjv';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
@@ -728,7 +736,7 @@ async function enterRoom(room) {
   $('roomInfo').style.display = 'block';
   $('roomCode').textContent = room.room_code;
   $('instructions').textContent = 'Move around and explore together';
-  $('chatBar').style.display = 'flex';
+  $('chatBar').style.display = 'block';
 
   player.position.set(0,0,2);
   player.rotation.y = 0;
