@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hangout - Supabase Test</title>
+<style>
+body {
+  background:#171b20;
+  color:white;
+  font-family:Arial,sans-serif;
+  padding:25px;
+}
+button {
+  padding:14px;
+  width:100%;
+  border:0;
+  border-radius:10px;
+  background:#d4e0d4;
+  font-weight:bold;
+}
+#result {
+  margin-top:20px;
+  padding:15px;
+  background:#252e32;
+  border-radius:10px;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+}
+</style>
+</head>
+<body>
+
+<h2>HANGOUT.</h2>
+<p>Supabase connection diagnostic</p>
+
+<button onclick="testConnection()">TEST CONNECTION</button>
+
+<div id="result">Waiting for test...</div>
+
+<script>
+const URL = 'https://grykpdbvyssmvwqyqpoi.supabase.co';
+
+const KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-g5-9rjv';
+
+async function testConnection() {
+  const result = document.getElementById('result');
+  result.textContent = 'Testing Supabase...';
+
+  try {
+    const response = await fetch(URL + '/auth/v1/health', {
+      method: 'GET',
+      headers: {
+        'apikey': KEY
+      }
+    });
+
+    const body = await response.text();
+
+    result.textContent =
+      'HTTP STATUS: ' + response.status +
+      '\n\nRESPONSE:\n' + body;
+
+  } catch (error) {
+    result.textContent = 'NETWORK ERROR: ' + error.message;
+  }
+}
+</script>
+
+</body>
+</html>
