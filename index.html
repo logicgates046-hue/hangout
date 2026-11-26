@@ -113,7 +113,7 @@ canvas{display:block;width:100%;height:100%}
 }
 #roomCode{font-weight:bold;letter-spacing:1px}
 
-/* SMALL VERTICAL CHAT WIDGET */
+/* COMPACT VERTICAL CHAT */
 #chatBar{
  display:none;
  position:fixed;
@@ -258,10 +258,14 @@ canvas{display:block;width:100%;height:100%}
 import * as THREE from 'three';
 import { createClient } from '@supabase/supabase-js';
 
+/* SUPABASE CONFIGURATION */
+
 const SUPABASE_URL = 'https://grykpdbvyssmvwqyqpoi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_AXn0IVR3a_sCGZpDtLoOwg_-5g-9rjv';
+
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyeWtwZGJ2eXNzbXZ3cXlxcG9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU3MTA1NzcsImV4cCI6MjExMTI4NjU3N30.k_CqV3TN7FJtLF2ZdAfUXfuXOzwWvoSJQeL_YWS5EqA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const $ = id => document.getElementById(id);
 
 let currentUser = null;
@@ -296,25 +300,35 @@ function selectAvatar(gender) {
   $('femaleChoice').classList.toggle('selected', gender === 'female');
 }
 
+/* AUTHENTICATION */
+
 async function connect() {
   try {
-    const {data: sessionData, error: sessionError} = await supabase.auth.getSession();
+    const {data: sessionData, error: sessionError} =
+      await supabase.auth.getSession();
+
     if (sessionError) throw sessionError;
 
     if (sessionData.session) {
       currentUser = sessionData.session.user;
     } else {
       const {data, error} = await supabase.auth.signInAnonymously();
+
       if (error) throw error;
+
       currentUser = data.user;
     }
 
     setStatus('● CONNECTED');
-    $('connectionMessage').textContent = 'Connected. Choose your character and create or join a room.';
+    $('connectionMessage').textContent =
+      'Connected. Choose your character and create or join a room.';
+
   } catch (error) {
     setStatus('CONNECTION ERROR');
-    $('connectionMessage').textContent = error.message;
-    console.error(error);
+    $('connectionMessage').textContent =
+      'Authentication error: ' + error.message;
+
+    console.error('AUTHENTICATION ERROR:', error);
   }
 }
 
@@ -327,7 +341,9 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9baeb5);
 scene.fog = new THREE.Fog(0x9baeb5,13,32);
 
-const camera = new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);
+const camera = new THREE.PerspectiveCamera(
+  55,innerWidth/innerHeight,.1,100
+);
 
 const renderer = new THREE.WebGLRenderer({
   antialias:true,
@@ -356,7 +372,9 @@ function material(color,roughness=.85) {
 }
 
 function box(name,x,y,z,sx,sy,sz,mat) {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(sx,sy,sz),mat
+  );
   mesh.name = name;
   mesh.position.set(x,y,z);
   mesh.castShadow = true;
@@ -409,7 +427,11 @@ for(let i=0;i<6;i++){
     material(0x416a50)
   );
   leaf.scale.set(.7,2,.7);
-  leaf.position.set(Math.sin(i)*.3,1.15+Math.random()*.4,Math.cos(i)*.3);
+  leaf.position.set(
+    Math.sin(i)*.3,
+    1.15+Math.random()*.4,
+    Math.cos(i)*.3
+  );
   leaf.rotation.z=Math.sin(i)*.5;
   plant.add(leaf);
 }
@@ -475,6 +497,7 @@ function createSpeechBubble(message) {
 
   for(const word of words) {
     const test = line ? line + ' ' + word : word;
+
     if(ctx.measureText(test).width > 430 && line) {
       lines.push(line);
       line = word;
@@ -482,11 +505,15 @@ function createSpeechBubble(message) {
       line = test;
     }
   }
+
   if(line) lines.push(line);
 
   const visible = lines.slice(0,3);
+
   visible.forEach((item,i) => {
-    ctx.fillText(item,256,58 + (i-(visible.length-1)/2)*34,430);
+    ctx.fillText(
+      item,256,58+(i-(visible.length-1)/2)*34,430
+    );
   });
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -528,7 +555,8 @@ function showBubble(character,message) {
 function makeCharacter(name,gender='male') {
   const group = new THREE.Group();
 
-  const mat = color => new THREE.MeshStandardMaterial({color,roughness:.8});
+  const mat = color =>
+    new THREE.MeshStandardMaterial({color,roughness:.8});
 
   const skin = mat(0x986e50);
   const shirt = mat(gender === 'female' ? 0x9b526e : 0x252b35);
@@ -537,7 +565,9 @@ function makeCharacter(name,gender='male') {
   const hair = mat(0x191716);
 
   function sphere(parent,x,y,z,sx,sy,sz,m) {
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1,16,12),m);
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1,16,12),m
+    );
     mesh.position.set(x,y,z);
     mesh.scale.set(sx,sy,sz);
     mesh.castShadow = true;
@@ -583,7 +613,9 @@ function makeCharacter(name,gender='male') {
     group.add(leg);
     limb(leg,0,-.27,0,.55,.105,pants);
 
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(.23,.13,.38),shoes);
+    const shoe = new THREE.Mesh(
+      new THREE.BoxGeometry(.23,.13,.38),shoes
+    );
     shoe.position.set(0,-.56,.07);
     leg.add(shoe);
     legs.push(leg);
@@ -615,8 +647,11 @@ camera.position.set(0,4,8);
 function disposeCharacter(character) {
   character.traverse(obj => {
     if(obj.geometry) obj.geometry.dispose();
+
     if(obj.material) {
-      const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+      const materials = Array.isArray(obj.material)
+        ? obj.material : [obj.material];
+
       materials.forEach(m => {
         if(m.map) m.map.dispose();
         m.dispose();
@@ -631,11 +666,16 @@ async function createRoom() {
   if(busy) return;
   busy = true;
 
+  $('createRoom').textContent = 'CREATING ROOM...';
+
   try {
-    if(!currentUser) throw new Error('Not connected. Refresh and try again.');
+    if(!currentUser)
+      throw new Error('Not connected. Refresh and try again.');
 
     playerName = $('playerName').value.trim();
-    if(!playerName) throw new Error('Enter your display name first.');
+
+    if(!playerName)
+      throw new Error('Enter your display name first.');
 
     const {data: room,error: roomError} = await supabase
       .from('rooms')
@@ -643,7 +683,14 @@ async function createRoom() {
       .select()
       .single();
 
-    if(roomError) throw roomError;
+    if(roomError) {
+      console.error('ROOM INSERT ERROR:',roomError);
+      throw new Error(
+        'Room creation failed: ' + roomError.message +
+        ' | Code: ' + (roomError.code || 'unknown') +
+        ' | Details: ' + (roomError.details || 'none')
+      );
+    }
 
     const {error: playerError} = await supabase
       .from('room_players')
@@ -658,14 +705,23 @@ async function createRoom() {
         is_moving:false
       });
 
-    if(playerError) throw playerError;
+    if(playerError) {
+      console.error('PLAYER INSERT ERROR:',playerError);
+      throw new Error(
+        'Room was created, but adding your player failed: ' +
+        playerError.message +
+        ' | Code: ' + (playerError.code || 'unknown')
+      );
+    }
 
     await enterRoom(room);
+
   } catch(error) {
     toast(error.message);
-    console.error(error);
+    console.error('CREATE ROOM ERROR:',error);
   } finally {
     busy = false;
+    $('createRoom').textContent = 'CREATE A ROOM';
   }
 }
 
@@ -675,14 +731,20 @@ async function joinRoom() {
   if(busy) return;
   busy = true;
 
+  $('joinRoom').textContent = 'JOINING...';
+
   try {
-    if(!currentUser) throw new Error('Not connected. Refresh and try again.');
+    if(!currentUser)
+      throw new Error('Not connected. Refresh and try again.');
 
     playerName = $('playerName').value.trim();
     const code = $('joinCode').value.trim();
 
-    if(!playerName) throw new Error('Enter your display name first.');
-    if(!code) throw new Error('Enter the room invitation code.');
+    if(!playerName)
+      throw new Error('Enter your display name first.');
+
+    if(!code)
+      throw new Error('Enter the room invitation code.');
 
     const {data: roomId,error} = await supabase.rpc('join_room',{
       p_room_code:code,
@@ -700,11 +762,13 @@ async function joinRoom() {
     if(roomError) throw roomError;
 
     await enterRoom(room);
+
   } catch(error) {
-    toast(error.message);
-    console.error(error);
+    toast('Join failed: ' + error.message);
+    console.error('JOIN ROOM ERROR:',error);
   } finally {
     busy = false;
+    $('joinRoom').textContent = 'JOIN ROOM';
   }
 }
 
@@ -771,6 +835,7 @@ function addRemotePlayer(data) {
       data.display_name,
       data.avatar_gender || 'male'
     );
+
     scene.add(character);
 
     remote = {
@@ -785,17 +850,21 @@ function addRemotePlayer(data) {
     };
 
     remotePlayers.set(data.user_id,remote);
+
   } else {
     const newGender = data.avatar_gender || 'male';
 
     if(remote.group.userData.gender !== newGender) {
       const old = remote.group;
       const replacement = makeCharacter(data.display_name,newGender);
+
       replacement.position.copy(old.position);
       replacement.rotation.copy(old.rotation);
+
       scene.add(replacement);
       scene.remove(old);
       disposeCharacter(old);
+
       remote.group = replacement;
     }
 
@@ -804,6 +873,7 @@ function addRemotePlayer(data) {
       0,
       Number(data.position_z)||0
     );
+
     remote.targetRotation = Number(data.rotation_y)||0;
     remote.moving = Boolean(data.is_moving);
   }
@@ -833,7 +903,10 @@ function showMessage(message,live=false) {
       showBubble(player,message.content);
     } else {
       const remote = remotePlayers.get(message.user_id);
-      if(remote) showBubble(remote.group,message.content);
+
+      if(remote) {
+        showBubble(remote.group,message.content);
+      }
     }
   }
 }
@@ -849,7 +922,7 @@ async function loadMessages() {
     .limit(100);
 
   if(error) {
-    console.error(error);
+    console.error('LOAD MESSAGES ERROR:',error);
     return;
   }
 
@@ -879,6 +952,7 @@ $('chatForm').addEventListener('submit',async e => {
 
   if(error) {
     toast('Message failed: ' + error.message);
+    console.error('SEND MESSAGE ERROR:',error);
     return;
   }
 
@@ -888,7 +962,9 @@ $('chatForm').addEventListener('submit',async e => {
 /* REALTIME */
 
 function subscribeToRoom() {
-  if(realtimeChannel) supabase.removeChannel(realtimeChannel);
+  if(realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
+  }
 
   realtimeChannel = supabase
     .channel('hangout-' + currentRoom.id)
@@ -901,14 +977,18 @@ function subscribeToRoom() {
     },payload => {
       if(payload.eventType === 'DELETE') {
         const deletedUser = payload.old?.user_id;
+
         if(deletedUser && deletedUser !== currentUser.id) {
           removeRemotePlayer(deletedUser);
         }
+
         return;
       }
 
       const row = payload.new;
+
       if(!row || row.user_id === currentUser.id) return;
+
       addRemotePlayer(row);
     })
 
@@ -922,7 +1002,9 @@ function subscribeToRoom() {
     })
 
     .subscribe(status => {
-      if(status === 'SUBSCRIBED') console.log('Realtime connected');
+      if(status === 'SUBSCRIBED') {
+        console.log('Realtime connected');
+      }
     });
 }
 
@@ -957,7 +1039,9 @@ $('leaveRoom').addEventListener('click',async () => {
     .eq('room_id',roomId)
     .eq('user_id',currentUser.id);
 
-  for(const id of [...remotePlayers.keys()]) removeRemotePlayer(id);
+  for(const id of [...remotePlayers.keys()]) {
+    removeRemotePlayer(id);
+  }
 
   if(player.userData.bubble) {
     player.remove(player.userData.bubble);
@@ -1006,6 +1090,7 @@ function updateJoystick(e) {
 
   joyX=dx/max;
   joyY=dy/max;
+
   stick.style.left=`calc(50% + ${dx}px)`;
   stick.style.top=`calc(50% + ${dy}px)`;
 }
@@ -1050,19 +1135,30 @@ const clock = new THREE.Clock();
 let walkTime = 0;
 
 function animateRemote(remote,delta) {
-  remote.group.position.lerp(remote.target,Math.min(1,delta*12));
+  remote.group.position.lerp(
+    remote.target,
+    Math.min(1,delta*12)
+  );
 
-  let difference=remote.targetRotation-remote.group.rotation.y;
-  difference=Math.atan2(Math.sin(difference),Math.cos(difference));
+  let difference =
+    remote.targetRotation-remote.group.rotation.y;
+
+  difference=Math.atan2(
+    Math.sin(difference),
+    Math.cos(difference)
+  );
+
   remote.group.rotation.y+=difference*Math.min(1,delta*10);
 
   if(remote.moving) {
     remote.group.userData.walkTime+=delta*9;
     const t=remote.group.userData.walkTime;
+
     remote.group.userData.legs[0].rotation.x=Math.sin(t)*.4;
     remote.group.userData.legs[1].rotation.x=-Math.sin(t)*.4;
     remote.group.userData.arms[0].rotation.x=-Math.sin(t)*.25;
     remote.group.userData.arms[1].rotation.x=Math.sin(t)*.25;
+
   } else {
     remote.group.userData.legs.forEach(l=>l.rotation.x*=.8);
     remote.group.userData.arms.forEach(a=>a.rotation.x*=.8);
@@ -1104,25 +1200,41 @@ function animate() {
     player.position.addScaledVector(movement,3.2*delta);
 
     const angle=Math.atan2(movement.x,movement.z);
+
     let diff=angle-player.rotation.y;
+
     diff=Math.atan2(Math.sin(diff),Math.cos(diff));
+
     player.rotation.y+=diff*Math.min(1,delta*10);
 
     walkTime+=delta*10;
+
     player.userData.legs[0].rotation.x=Math.sin(walkTime)*.45;
     player.userData.legs[1].rotation.x=-Math.sin(walkTime)*.45;
     player.userData.arms[0].rotation.x=-Math.sin(walkTime)*.3;
     player.userData.arms[1].rotation.x=Math.sin(walkTime)*.3;
+
   } else {
     player.userData.legs.forEach(l=>l.rotation.x*=.8);
     player.userData.arms.forEach(a=>a.rotation.x*=.8);
   }
 
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-6.5,6.5);
-  player.position.z=THREE.MathUtils.clamp(player.position.z,-6.5,6.5);
+  player.position.x=THREE.MathUtils.clamp(
+    player.position.x,-6.5,6.5
+  );
 
-  const targetCamera=player.position.clone().add(new THREE.Vector3(0,4,6));
-  camera.position.lerp(targetCamera,1-Math.pow(.001,delta));
+  player.position.z=THREE.MathUtils.clamp(
+    player.position.z,-6.5,6.5
+  );
+
+  const targetCamera=player.position.clone().add(
+    new THREE.Vector3(0,4,6)
+  );
+
+  camera.position.lerp(
+    targetCamera,
+    1-Math.pow(.001,delta)
+  );
 
   camera.lookAt(
     player.position.x,
@@ -1130,7 +1242,9 @@ function animate() {
     player.position.z
   );
 
-  for(const remote of remotePlayers.values()) animateRemote(remote,delta);
+  for(const remote of remotePlayers.values()) {
+    animateRemote(remote,delta);
+  }
 
   renderer.render(scene,camera);
 }
@@ -1143,6 +1257,7 @@ setInterval(async() => {
   if(!currentRoom || !currentUser) return;
 
   const now=Date.now();
+
   if(now-lastSent<120) return;
   lastSent=now;
 
@@ -1179,7 +1294,10 @@ setInterval(async() => {
     .eq('room_id',currentRoom.id)
     .eq('user_id',currentUser.id);
 
-  if(error) console.error('Movement sync:',error.message);
+  if(error) {
+    console.error('Movement sync:',error.message);
+  }
+
 },150);
 
 /* RESIZE */
@@ -1189,6 +1307,7 @@ window.addEventListener('resize',() => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight);
 });
+
 </script>
 </body>
 </html>
